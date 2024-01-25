@@ -12,7 +12,7 @@
 
 <body>
     @section("content")
-    @if (!$produits)
+    @if (!$produits || $produits->isEmpty())
         <div class="w-100 my-5">
             <h3 class="text-secondary mx-auto col-4">Pas de produits</h3>
         </div>
@@ -26,20 +26,13 @@
             </tr>
             @foreach ($produits as $produit)
                 <tr>
-                    <td class="py-3">{{ $produit['Libelle'] }}</td>
-                    <td class="py-3">{{ $produit['Marque'] }}</td>
-                    <td class="py-3">{{ $produit['Prix'] }}</td>
+                    <td class="py-3">{{ $produit->libelle }}</td>
+                    <td class="py-3">{{ $produit->marque }}</td>
+                    <td class="py-3">{{ $produit->prix }}</td>
                     <td class=" px-0 d-flex justify-content-center align-items-center">
                         <a class=" m nav-link btn btn-info text-white me-2"
-                            href="/produits/{{ $produit['Id'] }}">Details</a>
-                        <a class="nav-link btn btn-warning text-white me-2"
-                            href="/produits/{{ $produit['Id'] }}/edit">Modifier</a>
-                        <form action="{{ route('produits.destroy', ['produit' => $produit['Id']]) }}" method="post"
-                            class="my-0">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger py-2 " type="submit">Supprimer</button>
-                        </form>
+                            href="/produits/{{ $produit->id }}">Détails</a>
+                        
                     </td>
                 </tr>
             @endforeach

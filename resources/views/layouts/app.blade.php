@@ -16,7 +16,7 @@
         <div class="collapse navbar-collapse" id="navbarText">
           <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/produits">Gestion des produits</a>
+              <a class="nav-link" href="/produits">Index</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{route('produits.create')}}">Créer un produit</a>
@@ -26,6 +26,13 @@
       </nav>
     </header>
       <main class="container mt-4">
+
+        @if (session('success'))
+          <div class="alert alert-success text-center">
+              {{ session('success') }}
+          </div>
+        @endif
+
         @yield('content')
       </main>
       <footer class="bg-dark text-center text-light p-3  mt-auto">

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\ProduitStoreRequest;
+use App\Http\Requests\ProduitUpdateRequest;
+use Illuminate\Support\Facades\DB;
 
 
 class ProduitController extends Controller
@@ -21,8 +23,8 @@ class ProduitController extends Controller
      */
     public function index()
     {
-        $produits = session('produits', []);
-        return view("produits.index",compact('produits'));
+        $produits = DB::table('produits')->get();
+        return view('produits.index', ['produits' => $produits]);
     }
 
     /**
@@ -40,27 +42,21 @@ class ProduitController extends Controller
     {
         $validatedData = $request->validated();
 
-        $produits = session('produits', []);
-
         $produit = [
-            'Id' => uniqid(),
-            'Libelle' => $validatedData['libelle'],
-            'Marque' => $validatedData['marque'],
-            'Prix' => $validatedData['prix'],
-            'Stock' => $validatedData['stock'],
+            'libelle' => $validatedData['libelle'],
+            'marque' => $validatedData['marque'],
+            'prix' => $validatedData['prix'],
+            'stock' => $validatedData['stock'],
         ];
     
         if ($request->hasFile('image')) {
-            $produit['Image'] = $request->file('image')->store('ProduitsImages', 'local');
+            $produit['image'] = $request->file('image')->store('ProduitsImages', 'local');
         }
     
+        
+        $productId = DB::table('produits')->insertGetId($produit);
     
-
-        $produits[] = $produit;
-
-        session(['produits' => $produits]);
-
-        return redirect('/produits');
+        return redirect('/produits/' . $productId)->with('success', 'Le produit a été créé avec succès.');
     }
     
 
@@ -69,9 +65,9 @@ class ProduitController extends Controller
      */
     public function show(string $id)
     {
-        $produits = session('produits',[]);
-        $produit = collect($produits)->firstWhere('Id',$id);
-        return view('produits.show', compact('produit'));
+        $produit = DB::table('produits')->where('id',$id)->first();
+
+        return view('produits.show',compact('produit'));
     }
 
     /**
@@ -79,38 +75,35 @@ class ProduitController extends Controller
      */
     public function edit(string $id)
     {
-        $produits = session('produits', []);
-        return view('produits.edit', compact('produits', 'id'));
+        
+        $produit = DB::table('produits')->where('id',$id)->first();
+
+        return view('produits.edit',compact('produit'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ProduitUpdateRequest $request, string $id)
     {
-        $produits = session('produits', []);
-
-        $index = collect($produits)->search(function ($item) use ($id) {
-            return $item['Id'] == $id;
-        });
+        
+        $produit = DB::table('produits')->where('id',$id)->first();
 
         $data = [
-            'Id' => $id,
-            'Libelle' => $request->libelle,
-            'Marque' => $request->marque,
-            'Prix' => $request->prix,
-            'Stock' => $request->stock,
+            'id' => $id,
+            'libelle' => $request->libelle,
+            'marque' => $request->marque,
+            'prix' => $request->prix,
+            'stock' => $request->stock,
         ];
-    
+
         if ($request->hasFile('image')) {
-            $data['Image'] = $request->file('image')->store('ProduitsImages', 'local');
+            $data['image'] = $request->file('image')->store('ProduitsImages','local');
         }
-    
-        $produits[$index] = $data;
 
-        session(['produits' => $produits]);
+        DB::table('produits')->where('id',$id)->update($data);
 
-        return redirect('/produits');
+        return redirect('/produits/' . $id)->with('success', 'Le produit a été mis à jour avec succès.');
     }
 
     /**
@@ -118,18 +111,9 @@ class ProduitController extends Controller
      */
     public function destroy(string $id)
     {
-        $produits = session('produits', []);
+        DB::table('produits')->where('id',$id)->delete();
 
-        foreach ($produits as $key => $produit) {
-            if ($produit['Id'] == $id) {
-                unset($produits[$key]);
-                break;
-            }
-        }
-        
-        session(['produits'=>$produits]);
-        
-        return redirect('/produits');
+        return redirect('/produits')->with('success', 'Le produit a été supprimé avec succès.');
     
     }
 }
